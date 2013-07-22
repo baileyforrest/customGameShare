@@ -1,0 +1,41 @@
+{
+  "globals": {
+    "console": true,
+    "__dirname": true,
+    "require": true,
+    "exports": true,
+    "module": true,
+
+    "document": true,
+    "window": true,
+    "requestAnimationFrame": true,
+
+    "THREE": true,
+    "MapEntity": true,
+    "Unit": true,
+    "Cube": true,
+    "UIHandler": true,
+
+    "Y_OFFSET": true,
+    "CANVAS_WIDTH": true,
+    "CANVAS_HEIGHT": true
+  },
+
+  // Enforcing options
+  "strict": true,
+  "curly": true,
+  "plusplus": true,
+  "quotmark": "single",
+  "undef": true,
+  "trailing": true,
+  "camelcase": true,
+
+  // Legacy Options
+  "white": true,
+  "onevar": true,
+
+  // Relaxing options
+  "laxcomma": true,
+
+  "indent": 2
+}
