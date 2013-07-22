@@ -3,17 +3,17 @@
  *
  * MapEntity class - Entity is something which exists on the map
  */
-/* global THREE */
 
 function MapEntity(params) {
   'use strict';
-  // Position, contains x, y, z, rot (rotation)
   this.pos = params.pos;
+  this.rot = 0;
 
   // if health < 0, unit is invulnerable
   this.healthMax = 0;
   this.healthCur = 0;
   this.radius = 0;
+  this.height = 0;
   this.map = params.map;
   this.selection = null;
   this.selected = false;
@@ -24,7 +24,6 @@ function MapEntity(params) {
  */
 MapEntity.prototype.init = function () {
   'use strict';
-  console.log('init');
   this.view = this.createView();
   this.selection = this.createSelect();
   this.map.add(this);
@@ -32,9 +31,8 @@ MapEntity.prototype.init = function () {
 
 MapEntity.prototype.createSelect = function () {
   'use strict';
-  console.log(this.radius);
   var selector = new THREE.Mesh(
-    new THREE.TorusGeometry(this.radius * 1.5, 5, 20, 20),
+    new THREE.TorusGeometry(this.radius, 3, 20, 20),
     new THREE.MeshBasicMaterial({ color: 'green' })
   );
   return selector;

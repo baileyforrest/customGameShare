@@ -3,9 +3,7 @@
  *
  * Unit class - Units can move
  */
-/* global MapEntity */
-/* global define */
-/* global THREE */
+
 function Unit(params) {
   'use strict';
   MapEntity.call(this, params);
@@ -29,7 +27,7 @@ Unit.prototype.move = function (dir) {
 
 Unit.prototype.setDest = function (dest) {
   'use strict';
-  this.dest = dest;
+  this.dest.copy(dest);
 };
 
 Unit.prototype.moveToDest = function (timeDiff) {

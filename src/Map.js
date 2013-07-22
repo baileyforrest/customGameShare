@@ -3,8 +3,6 @@
  *
  * Map - holds all information on the map
  */
-/* global Unit */
-/* global THREE */
 
 function Map() {
   'use strict';
@@ -19,7 +17,34 @@ function Map() {
 
   // The three.js scene of view data
   this.scene = new THREE.Scene();
+  this.init();
 }
+
+Map.prototype.init = function () {
+  'use strict';
+  var floor, cube;
+  // Floor (temporary)
+  floor = new THREE.Mesh(
+    new THREE.PlaneGeometry(1000, 1000),
+    new THREE.MeshBasicMaterial({ color: 'red' })
+  );
+  floor.position.y = Y_OFFSET;
+  floor.position.z = (-50);
+  floor.overdraw = true;
+  this.scene.add(floor);
+
+  // Objects in map (temporary)
+  // cube
+  cube = new Cube({
+    pos: new THREE.Vector3(0, Y_OFFSET, 0),
+    rot: 0,
+    map: this
+  });
+  cube.select();
+
+  this.cube = cube;
+  this.floor = floor;
+};
 
 Map.prototype.getScene = function () {
   'use strict';
@@ -53,4 +78,11 @@ Map.prototype.update = function (timeDiff) {
       }
     }
   }
+};
+
+Map.prototype.notifyClick = function (pos) {
+  'use strict';
+  console.log(pos.x + ' ' + pos.y);
+  // For now just move the cube to the given location
+  this.cube.setDest(new THREE.Vector3(pos.x, pos.y, 0));
 };
