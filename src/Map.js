@@ -6,6 +6,13 @@
 
 function Map() {
   'use strict';
+  // Temporary: set the bounds of the map
+  var bounds = new Rect();
+  bounds.setPos(-CANVAS_WIDTH / 2, -CANVAS_HEIGHT / 2 + Y_OFFSET);
+  bounds.setDim(CANVAS_WIDTH, CANVAS_HEIGHT);
+
+  // Quad tree containing all MapEntities
+  this.qTree = new QuadTree(bounds);
 
   // Array of non unit entities
   this.statics = [];
@@ -37,11 +44,10 @@ Map.prototype.init = function () {
   // cube
   for (i = 0; i < 5; i += 1) {
     cube = new Cube({
-      pos: new THREE.Vector3(-200 + i * 80, Y_OFFSET, 0),
+      pos: new THREE.Vector3(-300 + i * 150, Y_OFFSET, 0),
       rot: 0,
       map: this
     });
-    this.add(cube);
   }
 
   this.cube = cube;
@@ -60,6 +66,8 @@ Map.prototype.add = function (entity) {
   } else {
     this.statics.push(entity);
   }
+
+  this.qTree.insert(entity);
 
   // Add the entity's view to the scene
   this.scene.add(entity.getView());

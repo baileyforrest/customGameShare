@@ -17,7 +17,18 @@ function MapEntity(params) {
   this.map = params.map;
   this.selection = null;
   this.selected = false;
+  this.qTree = null;
 }
+
+MapEntity.prototype.setQTree = function (qTree) {
+  'use strict';
+  this.qTree = qTree;
+};
+
+MapEntity.prototype.getQTree = function () {
+  'use strict';
+  return this.qTree;
+};
 
 /**
  * This is to be called after initialization

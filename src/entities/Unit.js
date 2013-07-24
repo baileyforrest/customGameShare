@@ -16,13 +16,27 @@ Unit.prototype = Object.create(MapEntity.prototype);
 
 /**
  * Move the unit in vector direction
+ *
+ * @param {THREE.Vector3} dir Direction to move in
+ * @return {boolean} Returns true if successfully moved, false otherwise
  */
 Unit.prototype.move = function (dir) {
   'use strict';
   this.pos.add(dir);
+
+  // If the update cannot happen, undo the move
+  if (!this.qTree.update(this)) {
+    this.pos.sub(dir);
+    return false;
+  }
+
+  // Face the direction you're moving
+  // TODO: implement turning
   if (dir.y !== 0) {
     this.rot = -Math.atan(dir.x / dir.y);
   }
+
+  return true;
 };
 
 Unit.prototype.setDest = function (dest) {
