@@ -35,17 +35,20 @@ MapEntity.prototype.createSelect = function () {
     new THREE.TorusGeometry(this.radius, 2, 20, 20),
     new THREE.MeshBasicMaterial({ color: '#00ff00' })
   );
+  selector.position.z = -this.height / 2;
   return selector;
 };
 
 MapEntity.prototype.select = function () {
   'use strict';
   this.selected = true;
+  this.view.add(this.selection);
 };
 
 MapEntity.prototype.deSelect = function () {
   'use strict';
   this.selected = false;
+  this.view.remove(this.selection);
 };
 
 MapEntity.prototype.getSelection = function () {
@@ -64,9 +67,6 @@ MapEntity.prototype.isSelected = function () {
 MapEntity.prototype.updateView = function () {
   'use strict';
   // If selected, move selection to position
-  if (this.isSelected() && this.selection !== null) {
-    this.selection.position.copy(this.pos);
-  }
   return;
 };
 
@@ -91,6 +91,11 @@ MapEntity.prototype.draw = function () {
 MapEntity.prototype.getPos = function () {
   'use strict';
   return this.pos;
+};
+
+MapEntity.prototype.getRadius = function () {
+  'use strict';
+  return this.radius;
 };
 
 /**

@@ -15,6 +15,7 @@
     "Unit": true,
     "Cube": true,
     "UIHandler": true,
+    "Rect": true,
 
     "Y_OFFSET": true,
     "CANVAS_WIDTH": true,

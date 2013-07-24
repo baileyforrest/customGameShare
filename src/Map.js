@@ -13,7 +13,7 @@ function Map() {
   // Array of dynamic units
   this.dynamic = [];
 
-  this.selections = [];
+  this.selectedUnits = [];
 
   // The three.js scene of view data
   this.scene = new THREE.Scene();
@@ -70,21 +70,44 @@ Map.prototype.update = function (timeDiff) {
     entity = this.dynamic[i];
     entity.update(timeDiff);
     entity.updateView();
-    if (entity.isSelected()) {
-      selection = entity.getSelection();
-      if (this.selections.indexOf(selection) === -1) {
-        this.selections.push(selection);
-        this.scene.add(selection);
-      }
-    }
   }
 };
 
+/**
+ * When right click occurs, order units to perform action
+ */
 Map.prototype.notifyRightClick = function (pos) {
   'use strict';
-  // For now just move the cube to the given location
-  this.cube.setDest(new THREE.Vector3(pos.x, pos.y, 0));
+  var i, entity;
+  // For now just move all selected units to given location
+  for (i = 0; i < this.selectedUnits.length; i += 1) {
+    entity = this.selectedUnits[i];
+    entity.setDest(new THREE.Vector3(pos.x, pos.y, 0));
+  }
 };
 
-Map.prototype.notifyLeftClick = function (down, up) {
+/**
+ * When left click occurs, select units
+ */
+Map.prototype.notifyLeftClick = function (rect) {
+  'use strict';
+  var i, entity, pos, rad, topPos;
+
+  // Clear all selected units
+  this.selectedUnits.length = 0;
+
+  for (i = 0; i < this.dynamic.length; i += 1) {
+    entity = this.dynamic[i];
+    pos = entity.getPos();
+    rad = entity.getRadius();
+
+    // Select the unit if the top part is selected
+    topPos = new THREE.Vector2(pos.x, pos.y + rad / 2);
+    if (rect.circleIntersect(pos, rad) || rect.circleIntersect(topPos, rad)) {
+      entity.select();
+      this.selectedUnits.push(entity);
+    } else {
+      entity.deSelect();
+    }
+  }
 };

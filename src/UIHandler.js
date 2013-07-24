@@ -14,6 +14,7 @@ function UIHandler(canvas3d, canvas2d, map) {
   this.mousePos = new THREE.Vector2(0, 0);
   this.mouseDownPos = new THREE.Vector2(0, 0);
   this.mouseDown = false;
+  this.selRect = new Rect();
 
   this.registerMouseMove();
   this.registerMouseClick();
@@ -56,35 +57,52 @@ UIHandler.prototype.canvas2map = function (x, y) {
 UIHandler.prototype.registerMouseMove = function () {
   'use strict';
   var self = this;
+
+
   this.canvas2d.addEventListener('mousemove', function (event) {
+    if (self.mouseDown) {
+      self.selRect.setVect(self.mouseDownPos, self.mousePos);
+    }
+
     self.mousePos.set(event.clientX, event.clientY);
   });
 };
 
 UIHandler.prototype.registerMouseClick = function () {
   'use strict';
-  var self = this;
+  var self, left, right, ie;
+  self = this;
+
+  ie = false; // TODO: check for IE, or who gives a shit
+  left = ie ? 1 : 0;
+  right = 2;
 
   this.canvas2d.onmousedown = function (event) {
-    self.mouseDown = true;
-    self.mouseDownPos.set(self.mousePos.x, self.mousePos.y);
+    var mapPos;
+    if (event.button === left) {
+      self.mouseDown = true;
+      self.mouseDownPos.set(self.mousePos.x, self.mousePos.y);
+      self.selRect.setVect(self.mouseDownPos, self.mousePos);
+    } else if (event.button === right) {
+      mapPos = self.canvas2map(self.mousePos.x, self.mousePos.y);
+      self.map.notifyRightClick(new THREE.Vector2(mapPos.x, mapPos.y));
+    }
   };
 
   this.canvas2d.onmouseup = function (event) {
-    var down, up;
-    self.mouseDown = false;
+    var down, up, mapDown, mapUp;
+    if (event.button === left) {
+      self.mouseDown = false;
 
-    down = new THREE.Vector2(self.mouseDownPos.x, self.mouseDownPos.y);
-    up = new THREE.Vector2(self.mousePos.x, self.mousePos.y);
-    self.map.notifyLeftClick(down, up);
+      down = self.canvas2map(self.mouseDownPos.x, self.mouseDownPos.y);
+      up = self.canvas2map(self.mousePos.x, self.mousePos.y);
+
+      self.map.notifyLeftClick(new Rect(up, down));
+    }
   };
 
-  this.canvas2d.addEventListener('click', function (event) {
-  });
-
+  // Disable context menu
   this.canvas2d.oncontextmenu = function () {
-    var mapPos = self.canvas2map(self.mousePos.x, self.mousePos.y);
-    self.map.notifyRightClick(new THREE.Vector2(mapPos.x, mapPos.y));
     return false;
   };
 };
@@ -94,16 +112,11 @@ UIHandler.prototype.registerMouseClick = function () {
  */
 UIHandler.prototype.drawSelectionRect = function (ctx2d) {
   'use strict';
-  var minX, minY, maxX, maxY;
-  minX = Math.min(this.mouseDownPos.x, this.mousePos.x);
-  maxX = Math.max(this.mouseDownPos.x, this.mousePos.x);
-  minY = Math.min(this.mouseDownPos.y, this.mousePos.y);
-  maxY = Math.max(this.mouseDownPos.y, this.mousePos.y);
-
-  console.log(minX + ' ' + minY + ' ' + maxX + ' ' + maxY);
-
+  var pos, dim;
+  pos = this.selRect.getPos();
+  dim = this.selRect.getDim();
   ctx2d.beginPath();
-  ctx2d.rect(minX, minY, maxX - minX, maxY - minY);
+  ctx2d.rect(pos.x, pos.y, dim.width, dim.height);
   ctx2d.lineWidth = 2;
   ctx2d.strokeStyle = '#00FF00';
   ctx2d.stroke();
