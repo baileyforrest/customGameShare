@@ -2,13 +2,17 @@
 <html>
   <head>
     <title>ThreeJS RTS</title>
+    <link rel="stylesheet" type="text/css" href="css/main.css">
   </head>
   <body>
-    <div id="container"></div>
+    <div id="container">
+      <canvas id="canvas2D" width="1000" height="600"></canvas>
+      <canvas id="canvas3D" width="1000" height="600"></canvas>
+    </div>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
     <script src="lib/three.min.js"></script>
-    <script src="lib/require.js"></script>
     <script src="src/Map.js"></script>
+    <script src="src/UIHandler.js"></script>
     <script src="src/entities/MapEntity.js"></script>
     <script src="src/entities/Unit.js"></script>
     <script src="src/entities/units/Cube.js"></script>

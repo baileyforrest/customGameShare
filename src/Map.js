@@ -80,9 +80,11 @@ Map.prototype.update = function (timeDiff) {
   }
 };
 
-Map.prototype.notifyClick = function (pos) {
+Map.prototype.notifyRightClick = function (pos) {
   'use strict';
-  console.log(pos.x + ' ' + pos.y);
   // For now just move the cube to the given location
   this.cube.setDest(new THREE.Vector3(pos.x, pos.y, 0));
+};
+
+Map.prototype.notifyLeftClick = function (down, up) {
 };

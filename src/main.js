@@ -4,19 +4,24 @@
  * Main initilization
  */
 
-// Setup three.js renderer
-var renderer = new THREE.WebGLRenderer();
-var CANVAS_WIDTH = window.innerWidth;
-var CANVAS_HEIGHT = window.innerHeight;
+// Setup three.js renderer3d
+var CANVAS_WIDTH = 1000;
+var CANVAS_HEIGHT = 600;
 var Y_OFFSET = 500;
-renderer.setSize(CANVAS_WIDTH, CANVAS_HEIGHT);
-document.body.appendChild(renderer.domElement);
+var canvas3d = document.getElementById('canvas3D');
+var canvas2d = document.getElementById('canvas2D');
+var renderer3d = new THREE.WebGLRenderer({ canvas: canvas3d });
+var renderer2d = new THREE.CanvasRenderer({ canvas: canvas2d });
+renderer3d.setSize(CANVAS_WIDTH, CANVAS_HEIGHT);
+document.body.appendChild(renderer3d.domElement);
 
 // Create the game map
 var map = new Map();
 
 // Create UI handler
-var uiHandler = new UIHandler(renderer.domElement, map);
+var uiHandler = new UIHandler(
+  renderer3d.domElement, renderer2d.domElement, map
+);
 
 var lastTime = 0;
 function animate() {
@@ -30,7 +35,8 @@ function animate() {
   map.update(timeDiff);
 
   // render
-  renderer.render(map.getScene(), uiHandler.getCamera());
+  renderer3d.render(map.getScene(), uiHandler.getCamera());
+  uiHandler.renderOverlay();
 
   // request new frame
   requestAnimationFrame(function () {

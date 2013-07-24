@@ -32,8 +32,8 @@ MapEntity.prototype.init = function () {
 MapEntity.prototype.createSelect = function () {
   'use strict';
   var selector = new THREE.Mesh(
-    new THREE.TorusGeometry(this.radius, 3, 20, 20),
-    new THREE.MeshBasicMaterial({ color: 'green' })
+    new THREE.TorusGeometry(this.radius, 2, 20, 20),
+    new THREE.MeshBasicMaterial({ color: '#00ff00' })
   );
   return selector;
 };
