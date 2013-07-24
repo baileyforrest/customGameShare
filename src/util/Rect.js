@@ -71,6 +71,22 @@ Rect.prototype.pointInCircle = function (coords, radius, x, y) {
   return dist <= radius;
 };
 
+/**
+ * Returns true if the given circle is contained in the rect
+ *
+ * @param {Coord} coords must have attributes x, y
+ * @param {Number} radius radius of the circle
+ * @return {boolean} Returns true if the circle is fully inside the Rect
+ */
+Rect.prototype.circleContained = function (coords, radius) {
+  'use strict';
+  return (this.pointIn({ x: coords.x + radius, y: coords.y }) &&
+          this.pointIn({ x: coords.x - radius, y: coords.y }) &&
+          this.pointIn({ x: coords.x, y: coords.y + radius }) &&
+          this.pointIn({ x: coords.x, y: coords.y - radius }));
+
+};
+
 Rect.prototype.circleIntersect = function (coords, radius) {
   'use strict';
   var pos, width, height;
@@ -82,4 +98,17 @@ Rect.prototype.circleIntersect = function (coords, radius) {
           this.pointInCircle(coords, radius, pos.x + width, pos.y) ||
           this.pointInCircle(coords, radius, pos.x, pos.y + height) ||
           this.pointInCircle(coords, radius, pos.x + width, pos.y + height));
+};
+
+/**
+ * Check for intersection with another Rect
+ * @param {Rect} rect rect to check intersection with
+ */
+Rect.prototype.rectIntersect = function (other) {
+  'use strict';
+
+  return !(this.pos.x > other.pos.x + other.width ||
+           this.pos.x + this.width < other.pos.x ||
+           this.pos.y > other.pos.y + other.height ||
+           this.pos.y + this.height < other.pos.y);
 };

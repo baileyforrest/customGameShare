@@ -118,12 +118,24 @@ MapEntity.prototype.modHealth = function (mod) {
   }
 };
 
+/**
+ * Unit died do clean up
+ */
 MapEntity.prototype.die = function () {
   'use strict';
-  return;
+
+  this.map.getScene.remove(this.view);
 };
 
 MapEntity.prototype.update = function (timeDiff) {
   'use strict';
   return;
+};
+
+MapEntity.prototype.checkCollision = function (other) {
+  'use strict';
+  var dist;
+  dist = Math.sqrt(Math.pow(this.pos.x - other.pos.x, 2) +
+                   Math.pow(this.pos.y - other.pos.y, 2));
+  return dist > (this.radius + other.radius);
 };

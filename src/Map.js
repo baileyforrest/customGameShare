@@ -22,7 +22,7 @@ function Map() {
 
 Map.prototype.init = function () {
   'use strict';
-  var floor, cube;
+  var floor, cube, i;
   // Floor (temporary)
   floor = new THREE.Mesh(
     new THREE.PlaneGeometry(1000, 1000),
@@ -35,12 +35,14 @@ Map.prototype.init = function () {
 
   // Objects in map (temporary)
   // cube
-  cube = new Cube({
-    pos: new THREE.Vector3(0, Y_OFFSET, 0),
-    rot: 0,
-    map: this
-  });
-  cube.select();
+  for (i = 0; i < 5; i += 1) {
+    cube = new Cube({
+      pos: new THREE.Vector3(-200 + i * 80, Y_OFFSET, 0),
+      rot: 0,
+      map: this
+    });
+    this.add(cube);
+  }
 
   this.cube = cube;
   this.floor = floor;
