@@ -62,7 +62,7 @@ QuadTree.prototype.subDivide = function () {
       height = halfHeight;
     } else {
       y = curPos.y + halfHeight + 1;
-      height = curDim.width - halfHeight;
+      height = curDim.height - halfHeight;
     }
     bound = new Rect();
     bound.setPos(x, y);
@@ -77,7 +77,7 @@ QuadTree.prototype.subDivide = function () {
     elem = this.elems[i];
     for (j = 0; j < this.children.length; j += 1) {
       if (this.children[j].insert(elem)) {
-        continue;
+        break;
       }
     }
 
@@ -100,15 +100,19 @@ QuadTree.prototype.findNode = function (elem) {
     return null;
   }
 
+  /*
   for (i = 0; i < this.elems.length; i += 1) {
+    console.log(this.getDist(this.elems[i].pos, elem.pos));
     if (
       this.elems[i] !== elem &&
         (this.getDist(this.elems[i].pos, elem.pos) <
          this.elems[i].getRadius() + elem.getRadius())
     ) {
+      console.log('collision');
       return null;
     }
   }
+  */
 
   for (i = 0; i < this.children.length; i += 1) {
     if (this.children[i].findNode(elem)) {
@@ -158,15 +162,16 @@ QuadTree.prototype.insert = function (elem) {
  * Remove an element from the quadtree
  *
  * @param {MapEntity} elem Element with pos containing x, y
+ * @param {boolean} isHere The element is here (moved) avoid checking for fit
  * @return {boolean} returns true if successfully removed element
  */
-QuadTree.prototype.remove = function (elem) {
+QuadTree.prototype.remove = function (elem, isHere) {
   'use strict';
   var i, entity, child;
 
   // Check center first because it's faster
-  if (!this.bounds.pointIn(elem.pos) ||
-      !this.bounds.circleContained(elem.pos, elem.getRadius())) {
+  if (!isHere && (!this.bounds.pointIn(elem.pos) ||
+      !this.bounds.circleContained(elem.pos, elem.getRadius()))) {
     return false;
   }
 
@@ -177,7 +182,7 @@ QuadTree.prototype.remove = function (elem) {
     }
   }
 
-  if (i != this.elems.length) {
+  if (i !== this.elems.length) {
     this.elems.splice(i, 1); // Remove the element
     return true;
   }
@@ -188,7 +193,6 @@ QuadTree.prototype.remove = function (elem) {
     }
   }
 
-  console.log('failed to remove!');
   return false;
 };
 
@@ -210,36 +214,41 @@ QuadTree.prototype.getDist = function (p1, p2) {
  * @param {MapEntity} elem Element to check for collisons
  * @param {boolean} collision if true, returns first found collision
  */
-/*
-   QuadTree.prototype.getElemsCircleRangeParents = function (elem, collision) {
-   'use strict';
-   var i, results;
 
-   results = [];
+QuadTree.prototype.getElemsCircleRangeParents = function (elem, collision) {
+  'use strict';
+  var i, results;
 
-   for (i = 0; i < this.elems.length; i += 1) {
-   if (
-   this.getDist(elem.pos, this.elems[i]) <
-   elem.getRadius() + this.elems[i].getRadius()
-   ) {
-   results.push(this.elems[i]);
-   if (collision) {
-   return results;
-   }
-   }
-   }
+  results = [];
 
-   if (!this.parent) {
-   return results;
-   }
+  for (i = 0; i < this.elems.length; i += 1) {
+    if (
+      this.elems[i] !== elem &&
+      (this.getDist(elem.pos, this.elems[i].pos) <
+        elem.getRadius() + this.elems[i].getRadius())
+    ) {
+      //console.log('result!');
+      results.push(this.elems[i]);
+      if (collision) {
+        return results;
+      }
+    }
+  }
 
-   return results.concat(
-   this.parent.getElemsCircleRangeParents(elem, collision));
-   };
-   */
+  if (!this.parent) {
+    return results;
+  }
+
+  // TODO: make this tail recursive if performance problems
+  return results.concat(
+    this.parent.getElemsCircleRangeParents(elem, collision));
+};
+
 
 /**
  * Get elements in a circle around given point
+ *
+ * Should be called on root to get all elements in circle range,
  *
  * @param {MapEntity} elem Element to check if for range
  * @param {boolean} collision if true, returns first found collision
@@ -252,7 +261,7 @@ QuadTree.prototype.getElemsCircleRange = function (elem, collision, qTree) {
   var i, entity, result;
   result = [];
 
-  if (!this.bounds.circleContained(elem.getPos(), elem.getRadius)) {
+  if (!this.bounds.circleIntersect(elem.getPos(), elem.getRadius)) {
     return result;
   }
 
@@ -283,17 +292,6 @@ QuadTree.prototype.getElemsCircleRange = function (elem, collision, qTree) {
   }
 
   return result;
-
-  /*
-
-  // If !qTree we started from the root
-  if (!this.parent || !qTree) {
-  return result;
-  }
-
-  return result.concat(
-  this.parent.getElemsCircleRangeParents(elem, collision));
-  */
 };
 
 /**
@@ -329,17 +327,19 @@ QuadTree.prototype.update = function (elem) {
   // sized entities
   newNode = this.root.findNode(elem);
 
-  // Couldn't find a new node
-  if (!newNode) {
+  // Collision in new node
+  if (
+    newNode === null ||
+      newNode.getElemsCircleRangeParents(elem, true).length > 0
+  ) {
     return false;
   }
 
   elem.setQTree(newNode);
 
   if (newNode !== oldNode) {
-    oldNode.remove(elem);
+    oldNode.remove(elem, true);
     newNode.insert(elem);
-    console.log(newNode);
     console.log(this.root.size());
   }
 

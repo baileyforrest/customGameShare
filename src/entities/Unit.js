@@ -25,7 +25,7 @@ Unit.prototype.move = function (dir) {
   this.pos.add(dir);
 
   // If the update cannot happen, undo the move
-  if (!this.qTree.update(this)) {
+  if (!this.qTree.update(this, dir)) {
     this.pos.sub(dir);
     return false;
   }
