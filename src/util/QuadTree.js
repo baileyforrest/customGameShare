@@ -274,9 +274,10 @@ QuadTree.prototype.getElemsCircleRange = function (elem, collision, qTree) {
 
     // Intersection
     if (
-      elem.getRadius() + entity.getRadius() <=
-        this.getDist(elem.getPos(), entity.getPos())
+      this.getDist(elem.getPos(), entity.getPos()) <=
+        elem.getRadius() + entity.getRadius()
     ) {
+      //console.log(this.getDist(elem.getPos(), entity.getPos()));
       result.push(entity);
 
       // If only checking for collision then, stop
@@ -330,7 +331,7 @@ QuadTree.prototype.update = function (elem) {
   // Collision in new node
   if (
     newNode === null ||
-      newNode.getElemsCircleRangeParents(elem, true).length > 0
+      this.root.getElemsCircleRange(elem, true).length > 0
   ) {
     return false;
   }
