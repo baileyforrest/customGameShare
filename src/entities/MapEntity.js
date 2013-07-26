@@ -20,6 +20,11 @@ function MapEntity(params) {
   this.qTree = null;
 }
 
+MapEntity.prototype.getHealth = function () {
+  'use strict';
+  return { cur: this.healthCur, max: this.healthMax };
+};
+
 MapEntity.prototype.setQTree = function (qTree) {
   'use strict';
   this.qTree = qTree;
@@ -115,7 +120,7 @@ MapEntity.prototype.getRadius = function () {
 MapEntity.prototype.modHealth = function (mod) {
   'use strict';
   // If invulnerable, do nothing
-  if (this.healthMax < 0) {
+  if (this.healthMax <= 0) {
     return;
   }
 
@@ -135,7 +140,7 @@ MapEntity.prototype.modHealth = function (mod) {
 MapEntity.prototype.die = function () {
   'use strict';
 
-  this.map.getScene.remove(this.view);
+  this.map.remove(this);
 };
 
 MapEntity.prototype.update = function (timeDiff) {

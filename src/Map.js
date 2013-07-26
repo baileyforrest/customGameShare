@@ -17,10 +17,10 @@ function Map() {
   // Array of non unit entities
   this.statics = [];
 
-  // Array of dynamic units
-  this.dynamic = [];
+  // Array of dynamics units
+  this.dynamics = [];
 
-  this.selectedUnits = [];
+  this.selected = [];
 
   // The three.js scene of view data
   this.scene = new THREE.Scene();
@@ -31,10 +31,8 @@ Map.prototype.init = function () {
   'use strict';
   var floor, cube, i;
   // Floor (temporary)
-  floor = new THREE.Mesh(
-    new THREE.PlaneGeometry(1000, 1000),
-    new THREE.MeshBasicMaterial({ color: 'red' })
-  );
+  floor = new THREE.Mesh(new THREE.PlaneGeometry(1000, 1000),
+      new THREE.MeshBasicMaterial({ color: '#555' }));
   floor.position.y = Y_OFFSET;
   floor.position.z = (-50);
   floor.overdraw = true;
@@ -62,7 +60,7 @@ Map.prototype.getScene = function () {
 Map.prototype.add = function (entity) {
   'use strict';
   if (entity instanceof Unit) {
-    this.dynamic.push(entity);
+    this.dynamics.push(entity);
   } else {
     this.statics.push(entity);
   }
@@ -73,11 +71,20 @@ Map.prototype.add = function (entity) {
   this.scene.add(entity.getView());
 };
 
+Map.prototype.remove = function (entity) {
+  'use strict';
+  Util.arrayRemove(this.statics, entity);
+  Util.arrayRemove(this.selected, entity);
+  Util.arrayRemove(this.dynamics, entity);
+  this.qTree.remove(entity);
+  this.scene.remove(entity.getView());
+};
+
 Map.prototype.update = function (timeDiff) {
   'use strict';
   var i, entity, selection;
-  for (i = 0; i < this.dynamic.length; i += 1) {
-    entity = this.dynamic[i];
+  for (i = 0; i < this.dynamics.length; i += 1) {
+    entity = this.dynamics[i];
     entity.update(timeDiff);
     entity.updateView();
   }
@@ -88,11 +95,21 @@ Map.prototype.update = function (timeDiff) {
  */
 Map.prototype.notifyRightClick = function (pos) {
   'use strict';
-  var i, entity;
-  // For now just move all selected units to given location
-  for (i = 0; i < this.selectedUnits.length; i += 1) {
-    entity = this.selectedUnits[i];
-    entity.setDest(new THREE.Vector3(pos.x, pos.y, 0));
+  var i, entity, selEntity, dest;
+
+  selEntity = this.qTree.getLocEntity(pos);
+
+  // If unit selected attack it, otherwise move to location
+  if (selEntity) {
+    this.selected.forEach(function (elem) {
+      elem.setTarget(selEntity);
+    });
+  } else {
+    dest = new THREE.Vector3(pos.x, pos.y, 0);
+    this.selected.forEach(function (elem) {
+      elem.unsetTarget();
+      elem.setDest(dest);
+    });
   }
 };
 
@@ -104,10 +121,10 @@ Map.prototype.notifyLeftClick = function (rect) {
   var i, entity, pos, rad, topPos;
 
   // Clear all selected units
-  this.selectedUnits.length = 0;
+  this.selected.length = 0;
 
-  for (i = 0; i < this.dynamic.length; i += 1) {
-    entity = this.dynamic[i];
+  for (i = 0; i < this.dynamics.length; i += 1) {
+    entity = this.dynamics[i];
     pos = entity.getPos();
     rad = entity.getRadius();
 
@@ -115,9 +132,15 @@ Map.prototype.notifyLeftClick = function (rect) {
     topPos = new THREE.Vector2(pos.x, pos.y + rad / 2);
     if (rect.circleIntersect(pos, rad) || rect.circleIntersect(topPos, rad)) {
       entity.select();
-      this.selectedUnits.push(entity);
+      this.selected.push(entity);
     } else {
       entity.deSelect();
     }
   }
+};
+
+Map.prototype.forEachEntity = function (callback) {
+  'use strict';
+  this.statics.forEach(callback);
+  this.dynamics.forEach(callback);
 };

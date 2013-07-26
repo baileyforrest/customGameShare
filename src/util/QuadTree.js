@@ -102,10 +102,10 @@ QuadTree.prototype.findNode = function (elem) {
 
   /*
   for (i = 0; i < this.elems.length; i += 1) {
-    console.log(this.getDist(this.elems[i].pos, elem.pos));
+    console.log(Util.distance2d(this.elems[i].pos, elem.pos));
     if (
       this.elems[i] !== elem &&
-        (this.getDist(this.elems[i].pos, elem.pos) <
+        (Util.distance2d(this.elems[i].pos, elem.pos) <
          this.elems[i].getRadius() + elem.getRadius())
     ) {
       console.log('collision');
@@ -197,18 +197,6 @@ QuadTree.prototype.remove = function (elem, isHere) {
 };
 
 /**
- * Distance formula
- *
- * @param {Coord} p1
- * @param {Coord} p2
- * @return {Number} distance
- */
-QuadTree.prototype.getDist = function (p1, p2) {
-  'use strict';
-  return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
-};
-
-/**
  * Searches a qTree items in range of elem. Searches up the parent chain
  *
  * @param {MapEntity} elem Element to check for collisons
@@ -224,7 +212,7 @@ QuadTree.prototype.getElemsCircleRangeParents = function (elem, collision) {
   for (i = 0; i < this.elems.length; i += 1) {
     if (
       this.elems[i] !== elem &&
-      (this.getDist(elem.pos, this.elems[i].pos) <
+      (Util.distance2d(elem.pos, this.elems[i].pos) <
         elem.getRadius() + this.elems[i].getRadius())
     ) {
       //console.log('result!');
@@ -274,10 +262,10 @@ QuadTree.prototype.getElemsCircleRange = function (elem, collision, qTree) {
 
     // Intersection
     if (
-      this.getDist(elem.getPos(), entity.getPos()) <=
+      Util.distance2d(elem.getPos(), entity.getPos()) <=
         elem.getRadius() + entity.getRadius()
     ) {
-      //console.log(this.getDist(elem.getPos(), entity.getPos()));
+      //console.log(Util.distance2d(elem.getPos(), entity.getPos()));
       result.push(entity);
 
       // If only checking for collision then, stop
@@ -357,4 +345,34 @@ QuadTree.prototype.size = function () {
   }
 
   return size;
+};
+
+/**
+ * @param {Vector} pos Postion vector with x, y coords
+ * @return {MapEntity} Returns the map entity at given location
+ */
+QuadTree.prototype.getLocEntity = function (pos) {
+  'use strict';
+  var i, result;
+
+  if (!this.bounds.pointIn(pos)) {
+    return null;
+  }
+
+  for (i = 0; i < this.elems.length; i += 1) {
+    if (
+      Util.distance2d(pos, this.elems[i].getPos()) < this.elems[i].getRadius()
+    ) {
+      return this.elems[i];
+    }
+  }
+
+  for (i = 0; i < this.children.length; i += 1) {
+    result = this.children[i].getLocEntity(pos);
+    if (result) {
+      return result;
+    }
+  }
+
+  return null;
 };

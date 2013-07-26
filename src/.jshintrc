@@ -17,6 +17,7 @@
     "UIHandler": true,
     "Rect": true,
     "QuadTree": true,
+    "Util": true,
 
     "Y_OFFSET": true,
     "CANVAS_WIDTH": true,

@@ -15,6 +15,7 @@ function UIHandler(canvas3d, canvas2d, map) {
   this.mouseDownPos = new THREE.Vector2(0, 0);
   this.mouseDown = false;
   this.selRect = new Rect();
+  this.doDrawStatBars = true;
 
   this.registerMouseMove();
   this.registerMouseClick();
@@ -107,30 +108,98 @@ UIHandler.prototype.registerMouseClick = function () {
   };
 };
 
+UIHandler.prototype.toScreenXY = function (pos, camera, canvas) {
+  'use strict';
+  var locPos, projMatrix;
+  locPos = pos.clone();
+  projMatrix = new THREE.Matrix4();
+  projMatrix.multiplyMatrices(
+    camera.projectionMatrix, camera.matrixWorldInverse
+  );
+  locPos.applyMatrix4(projMatrix);//.multiplyVector3(locPos);
+
+  return {
+    x: Math.round((locPos.x + 1) * canvas.width / 2 + canvas.offsetLeft),
+    y: Math.round((-locPos.y + 1) * canvas.height / 2 + canvas.offsetTop)
+  };
+};
+
+/**
+ * Determine if coords are in screen bounds
+ */
+UIHandler.prototype.inScreenBounds = function (coord) {
+  'use strict';
+  return (coord.x >= 0 && coord.y >= 0 && coord.x < CANVAS_WIDTH &&
+          coord.y < CANVAS_HEIGHT);
+};
+
+/**
+ * Draw unit health bars
+ */
+UIHandler.prototype.drawStatBars = function () {
+  'use strict';
+  var self = this
+    , barHeight = 10;
+  this.map.forEachEntity(function (entity) {
+    var health, healthFrac, barWidth, fracWidth, screenCoord;
+    health = entity.getHealth();
+    if (health.max <= 0) {
+      return;
+    } else {
+      healthFrac = health.cur / health.max;
+      barWidth = entity.getRadius() * 1.5;
+      fracWidth = Math.round(barWidth * healthFrac);
+      screenCoord = self.toScreenXY(
+        entity.getPos(), self.camera, self.canvas3d
+      );
+
+      if (!self.inScreenBounds(screenCoord)) {
+        return;
+      }
+
+      self.context2d.fillStyle = '#FF0000';
+      self.context2d.fillRect(
+        screenCoord.x - entity.getRadius() * 0.75,
+        screenCoord.y - 1.5 * entity.getRadius(),
+        barWidth, barHeight
+      );
+
+      self.context2d.fillStyle = '#00FF00';
+      self.context2d.fillRect(
+        screenCoord.x - entity.getRadius() * 0.75,
+        screenCoord.y - 1.5 * entity.getRadius(),
+        fracWidth, barHeight
+      );
+      //console.log(fracWidth);
+    }
+  });
+};
+
 /**
  * Draw rectangle for unit selection
  */
-UIHandler.prototype.drawSelectionRect = function (ctx2d) {
+UIHandler.prototype.drawSelectionRect = function () {
   'use strict';
   var pos, dim;
   pos = this.selRect.getPos();
   dim = this.selRect.getDim();
-  ctx2d.beginPath();
-  ctx2d.rect(pos.x, pos.y, dim.width, dim.height);
-  ctx2d.lineWidth = 2;
-  ctx2d.strokeStyle = '#00FF00';
-  ctx2d.stroke();
+  this.context2d.beginPath();
+  this.context2d.rect(pos.x, pos.y, dim.width, dim.height);
+  this.context2d.lineWidth = 2;
+  this.context2d.strokeStyle = '#00FF00';
+  this.context2d.stroke();
 };
 
 UIHandler.prototype.renderOverlay = function () {
   'use strict';
   // Clear the overlay
-  var ctx2d;
-
-  ctx2d = this.context2d;
-  ctx2d.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+  this.context2d.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
   if (this.mouseDown) {
-    this.drawSelectionRect(ctx2d);
+    this.drawSelectionRect();
+  }
+
+  if (this.doDrawStatBars) {
+    this.drawStatBars();
   }
 };
