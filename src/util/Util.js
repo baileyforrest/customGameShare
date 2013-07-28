@@ -37,3 +37,19 @@ Util.arrayRemove = function (array, elem) {
 
   return false;
 };
+
+/**
+ * Run callback on each k:v pair in object
+ *
+ * @param {Object} obj
+ * @param {Function} func
+ */
+Util.objForEach = function (obj, func) {
+  'use strict';
+  var key;
+  for (key in obj) {
+    if (obj.hasOwnProperty(key)) {
+      func(obj[key], key, obj);
+    }
+  }
+};

@@ -284,6 +284,40 @@ QuadTree.prototype.getElemsCircleRange = function (elem, collision, qTree) {
 };
 
 /**
+ * Get all elements using the selection rectangle
+ *
+ * This method has some special rules, so its not the same as
+ * getElemsRectIntersect
+ */
+QuadTree.prototype.getElemsSelect = function (rect) {
+  'use strict';
+  var result, i, topPos, elem;
+  result = [];
+
+  if (!this.bounds.rectIntersect(rect)) {
+    return result;
+  }
+
+  for (i = 0; i < this.elems.length; i += 1) {
+    elem = this.elems[i];
+    topPos = new THREE.Vector2(
+      elem.getPos().x
+    , elem.getPos().y + elem.getRadius() / 2
+    );
+    if (rect.circleIntersect(elem.getPos(), elem.getRadius()) ||
+       rect.circleIntersect(topPos, elem.getRadius())) {
+      result.push(this.elems[i]);
+    }
+  }
+
+  for (i = 0; i < this.children.length; i += 1) {
+    result = result.concat(this.children[i].getElemsSelect(rect));
+  }
+
+  return result;
+};
+
+/**
  * Runs given function on all elements
  *
  * @param {Function} func function to run on each element

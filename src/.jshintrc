@@ -18,6 +18,8 @@
     "Rect": true,
     "QuadTree": true,
     "Util": true,
+    "Command": true,
+    "Player": true,
 
     "Y_OFFSET": true,
     "CANVAS_WIDTH": true,

@@ -18,7 +18,31 @@ function MapEntity(params) {
   this.selection = null;
   this.selected = false;
   this.qTree = null;
+  this.uid = MapEntity.getUid();
+  this.playerId = params.playerId; // id of owning player, 0 is neutral
 }
+
+MapEntity.prototype.getMap = function () {
+  'use strict';
+  return this.map;
+};
+
+MapEntity.uid = 0;
+MapEntity.getUid = function () {
+  'use strict';
+  this.uid += 1;
+  return this.uid;
+};
+
+MapEntity.prototype.getPlayerId = function () {
+  'use strict';
+  return this.playerId;
+};
+
+MapEntity.prototype.getUid = function () {
+  'use strict';
+  return this.uid;
+};
 
 MapEntity.prototype.getHealth = function () {
   'use strict';

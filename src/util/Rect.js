@@ -66,7 +66,6 @@ Rect.prototype.pointIn = function (coords) {
 Rect.prototype.pointInCircle = function (coords, radius, x, y) {
   'use strict';
   var dist = Util.distance2d(coords, { x: x, y: y});
-
   return dist <= radius;
 };
 

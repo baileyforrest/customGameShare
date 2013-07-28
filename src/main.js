@@ -16,7 +16,7 @@ renderer3d.setSize(CANVAS_WIDTH, CANVAS_HEIGHT);
 document.body.appendChild(renderer3d.domElement);
 
 // Create the game map
-var map = new Map();
+var map = new Map(new Player(), 4);
 
 // Create UI handler
 var uiHandler = new UIHandler(

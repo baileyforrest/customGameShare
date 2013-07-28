@@ -15,14 +15,20 @@ function Unit(params) {
   this.attackRange = 0; // 0 attack range means melee
   this.target = null; // attack target
   this.attackTimer = 0;
+  this.command = null; // Current command
 }
 
 Unit.prototype = Object.create(MapEntity.prototype);
 
+Unit.prototype.setCommand = function (command) {
+  'use strict';
+  this.unsetTarget();
+  this.command = command;
+};
+
 Unit.prototype.unsetTarget = function () {
   'use strict';
   this.target = null;
-  this.pendingAttacks = 0;
 };
 
 Unit.prototype.setTarget = function (target) {
@@ -39,16 +45,9 @@ Unit.prototype.setTarget = function (target) {
  * @param {timeDiff} time since last update
  * @return {boolean} Returns true if successfully attacked
  */
-Unit.prototype.attack = function (timeDiff) {
+Unit.prototype.attack = function () {
   'use strict';
   var dist, time;
-
-  this.attackTimer += timeDiff;
-
-  // Prevent overflow and float precision problems
-  if (this.attackTimer > 2 * this.attackSpeed) {
-    this.attackTimer = this.attackSpeed;
-  }
 
   if (!this.attackSpeed || !this.target) {
     return false;
@@ -106,14 +105,16 @@ Unit.prototype.move = function (dir) {
 
 Unit.prototype.update = function (timeDiff) {
   'use strict';
+  this.attackTimer += timeDiff;
 
-  this.attack(timeDiff);
+  this.doCommand();
   this.moveToDest(timeDiff);
 };
 
 Unit.prototype.setDest = function (dest) {
   'use strict';
-  this.dest.copy(dest);
+  this.dest.setX(dest.x);
+  this.dest.setY(dest.y);
 };
 
 Unit.prototype.moveToDest = function (timeDiff) {
@@ -131,4 +132,92 @@ Unit.prototype.moveToDest = function (timeDiff) {
   dir.normalize();
 
   this.move(moveDir.normalize().multiplyScalar(tickDist));
+};
+
+Unit.prototype.doCommand = function () {
+  'use strict';
+  if (!this.command) {
+    return;
+  }
+  switch (this.command.getType()) {
+    case Command.comType.MOVE: {
+      this.setDest(this.command.getParams().pos);
+      break;
+    }
+    case Command.comType.STOP: {
+      this.setDest(this.pos.x, this.pos.y);
+      break;
+    }
+    case Command.comType.HOLD: {
+      this.hold();
+      break;
+    }
+    case Command.comType.ATTACK: {
+      this.doAttack(this.command.getParams().uid);
+      break;
+    }
+    case Command.comType.ATTACKMOVE: {
+      this.attackMove(this.command.getParams().pos);
+      break;
+    }
+    case Command.comType.ATTACKGROUND: {
+      this.attackGround(this.command.getParams().pos);
+      break;
+    }
+    case Command.comType.PATROL: {
+      this.patrol(this.command.getParams().pos);
+      break;
+    }
+    case Command.comType.UNIQUE: {
+      this.uniqueCommand(this.command.getParams());
+      break;
+    }
+  }
+};
+
+/**
+ * Stop, don't move, but attack enemies in range
+ */
+Unit.prototype.hold = function () {
+  'use strict';
+  this.setDest(this.pos.x, this.pos.y);
+  // TODO: find enemies in range and attack them
+};
+
+/**
+ * Attack target of given uid
+ */
+Unit.prototype.doAttack = function (uid) {
+  'use strict';
+  var target;
+  if (!this.target) {
+    target = this.map.get(uid);
+    if (target) {
+      this.target = target;
+    }
+  }
+
+  this.attack();
+};
+
+Unit.prototype.attackMove = function (pos) {
+  'use strict';
+  this.setDest(this.pos.x, this.pos.y);
+
+  // TODO: attack enemies along the way
+};
+
+Unit.prototype.attackGround = function (pos) {
+  'use strict';
+  return;
+};
+
+Unit.prototype.patrol = function (pos) {
+  'use strict';
+  return;
+};
+
+Unit.prototype.uniqueCommand = function (params) {
+  'use strict';
+  return;
 };

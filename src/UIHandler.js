@@ -98,7 +98,7 @@ UIHandler.prototype.registerMouseClick = function () {
       down = self.canvas2map(self.mouseDownPos.x, self.mouseDownPos.y);
       up = self.canvas2map(self.mousePos.x, self.mousePos.y);
 
-      self.map.notifyLeftClick(new Rect(up, down));
+      self.map.select(new Rect(up, down));
     }
   };
 

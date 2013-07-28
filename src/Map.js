@@ -1,10 +1,9 @@
 /**
  * map.js
  *
- * Map - holds all information on the map
+ * Map - holds all information on the map. Each player has one copy of this
  */
-
-function Map() {
+function Map(player, game) {
   'use strict';
   // Temporary: set the bounds of the map
   var bounds = new Rect();
@@ -14,11 +13,14 @@ function Map() {
   // Quad tree containing all MapEntities
   this.qTree = new QuadTree(bounds);
 
-  // Array of non unit entities
+  this.player = player;
+  this.game = game;
+
+  // Array of non unit entities this should be scenery objects
   this.statics = [];
 
-  // Array of dynamics units
-  this.dynamics = [];
+  // Map of dynamics units, map from uid to entity
+  this.dynamics = {};
 
   this.selected = [];
 
@@ -31,8 +33,10 @@ Map.prototype.init = function () {
   'use strict';
   var floor, cube, i;
   // Floor (temporary)
-  floor = new THREE.Mesh(new THREE.PlaneGeometry(1000, 1000),
-      new THREE.MeshBasicMaterial({ color: '#555' }));
+  floor = new THREE.Mesh(
+    new THREE.PlaneGeometry(1000, 1000)
+  , new THREE.MeshBasicMaterial({ color: '#555' })
+  );
   floor.position.y = Y_OFFSET;
   floor.position.z = (-50);
   floor.overdraw = true;
@@ -42,9 +46,10 @@ Map.prototype.init = function () {
   // cube
   for (i = 0; i < 5; i += 1) {
     cube = new Cube({
-      pos: new THREE.Vector3(-300 + i * 150, Y_OFFSET, 0),
-      rot: 0,
-      map: this
+      pos: new THREE.Vector3(-300 + i * 150, Y_OFFSET, 0)
+    , rot: 0
+    , map: this
+    , playerId: Math.floor(i / 2)
     });
   }
 
@@ -60,7 +65,7 @@ Map.prototype.getScene = function () {
 Map.prototype.add = function (entity) {
   'use strict';
   if (entity instanceof Unit) {
-    this.dynamics.push(entity);
+    this.dynamics[entity.getUid()] = entity;
   } else {
     this.statics.push(entity);
   }
@@ -71,23 +76,60 @@ Map.prototype.add = function (entity) {
   this.scene.add(entity.getView());
 };
 
+/**
+ * Remove an entity from the map
+ */
 Map.prototype.remove = function (entity) {
   'use strict';
   Util.arrayRemove(this.statics, entity);
   Util.arrayRemove(this.selected, entity);
-  Util.arrayRemove(this.dynamics, entity);
+  if (this.dynamics[entity.getUid()]) {
+    delete this.dynamics[entity.getUid()];
+  }
   this.qTree.remove(entity);
   this.scene.remove(entity.getView());
 };
 
 Map.prototype.update = function (timeDiff) {
   'use strict';
-  var i, entity, selection;
-  for (i = 0; i < this.dynamics.length; i += 1) {
-    entity = this.dynamics[i];
+  var key, entity, selection;
+
+  Util.objForEach(this.dynamics, function (entity) {
     entity.update(timeDiff);
     entity.updateView();
+  });
+};
+
+/**
+ * Gets a dynamic entity from the map with given uid
+ *
+ * @param {Number} uid Unique identifier of desired unit
+ */
+Map.prototype.get = function (uid) {
+  'use strict';
+  if (this.dynamics[uid]) {
+    return this.dynamics[uid];
+  } else {
+    return null;
   }
+};
+
+/**
+ * Performs the command's action on this map
+ *
+ * @param {Command} command to run
+ * @param {Entity} entity to run command on
+ */
+Map.prototype.giveCommand = function (command, entity) {
+  'use strict';
+  var self = this;
+  command.getEntities().forEach(function (uid) {
+    var entity;
+    entity = self.get(uid);
+    if (entity) {
+      entity.setCommand(command);
+    }
+  });
 };
 
 /**
@@ -95,52 +137,79 @@ Map.prototype.update = function (timeDiff) {
  */
 Map.prototype.notifyRightClick = function (pos) {
   'use strict';
-  var i, entity, selEntity, dest;
+  var i, entity, selEntity, dest, command, comType, params, selected;
 
   selEntity = this.qTree.getLocEntity(pos);
+  params = null;
 
   // If unit selected attack it, otherwise move to location
   if (selEntity) {
-    this.selected.forEach(function (elem) {
-      elem.setTarget(selEntity);
-    });
+    // TODO: should set follow command...
+    if (selEntity.getPlayerId() === this.player.getId()) {
+      comType = Command.comType.MOVE;
+      params = {
+        pos: {
+          x: selEntity.getPos().x
+        , y: selEntity.getPos().y
+        }
+      };
+    } else {
+      comType = Command.comType.ATTACK;
+      params = { uid: selEntity.getUid() };
+    }
   } else {
-    dest = new THREE.Vector3(pos.x, pos.y, 0);
-    this.selected.forEach(function (elem) {
-      elem.unsetTarget();
-      elem.setDest(dest);
-    });
+    comType = Command.comType.MOVE;
+    params = {
+      pos: {
+        x: pos.x
+      , y: pos.y
+      }
+    };
   }
+
+  selected = [];
+
+  this.selected.forEach(function (entity) {
+    selected.push(entity.getUid());
+  });
+
+  command = new Command(
+    { entities: selected
+    , type: comType
+    , params: params
+  });
+
+  // TODO: send command to server so all players recieve it
+  this.giveCommand(command);
 };
 
 /**
- * When left click occurs, select units
+ * Select units in given rect
  */
-Map.prototype.notifyLeftClick = function (rect) {
+Map.prototype.select = function (rect) {
   'use strict';
-  var i, entity, pos, rad, topPos;
+  var self, i, entity, pos, rad, topPos, inRect;
+  self = this;
+
+  this.selected.forEach(function (entity) {
+    entity.deSelect();
+  });
+
+  inRect = this.qTree.getElemsSelect(rect);
 
   // Clear all selected units
   this.selected.length = 0;
 
-  for (i = 0; i < this.dynamics.length; i += 1) {
-    entity = this.dynamics[i];
-    pos = entity.getPos();
-    rad = entity.getRadius();
-
-    // Select the unit if the top part is selected
-    topPos = new THREE.Vector2(pos.x, pos.y + rad / 2);
-    if (rect.circleIntersect(pos, rad) || rect.circleIntersect(topPos, rad)) {
+  inRect.forEach(function (entity) {
+    if (entity.getPlayerId() === self.player.getId()) {
       entity.select();
-      this.selected.push(entity);
-    } else {
-      entity.deSelect();
+      self.selected.push(entity);
     }
-  }
+  });
 };
 
 Map.prototype.forEachEntity = function (callback) {
   'use strict';
   this.statics.forEach(callback);
-  this.dynamics.forEach(callback);
+  Util.objForEach(this.dynamics, callback);
 };
