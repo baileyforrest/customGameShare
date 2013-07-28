@@ -3,7 +3,7 @@
  *
  * Map - holds all information on the map. Each player has one copy of this
  */
-function Map(player, game, socket) {
+function Map(player, game, socket, mapFile) {
   'use strict';
   // Temporary: set the bounds of the map
   var bounds = new Rect();
@@ -29,36 +29,13 @@ function Map(player, game, socket) {
 
   // The three.js scene of view data
   this.scene = new THREE.Scene();
-  this.init();
+  this.mapFile = mapFile;
+  this.mapFile.init(this);
 }
 
-Map.prototype.init = function () {
+Map.prototype.getPlayers = function () {
   'use strict';
-  var floor, cube, i, pid;
-  // Floor (temporary)
-  floor = new THREE.Mesh(
-    new THREE.PlaneGeometry(1000, 1000)
-  , new THREE.MeshBasicMaterial({ color: '#555' })
-  );
-  floor.position.y = Y_OFFSET;
-  floor.position.z = (-50);
-  floor.overdraw = true;
-  this.scene.add(floor);
-
-  // Objects in map (temporary)
-  // cube
-  for (i = 0; i < 5; i += 1) {
-    pid = (i < 3) ? this.game.players[0].getId() :
-      this.game.players[1].getId();
-    cube = new Cube({
-      pos: new THREE.Vector3(-300 + i * 150, Y_OFFSET, 0)
-    , rot: 0
-    , map: this
-    , playerId: pid
-    });
-  }
-  this.cube = cube;
-  this.floor = floor;
+  return this.game.getPlayers();
 };
 
 Map.prototype.getScene = function () {
@@ -76,6 +53,8 @@ Map.prototype.add = function (entity) {
 
   this.qTree.insert(entity);
 
+  console.log('adding...');
+  console.log(entity.getView());
   // Add the entity's view to the scene
   this.scene.add(entity.getView());
 };

@@ -221,3 +221,11 @@ Unit.prototype.uniqueCommand = function (params) {
   'use strict';
   return;
 };
+
+Unit.prototype.updateView = function () {
+  'use strict';
+  MapEntity.prototype.updateView.call(this);
+  this.view.position.x = this.pos.x;
+  this.view.position.y = this.pos.y;
+  this.view.rotation.z = this.rot;
+};

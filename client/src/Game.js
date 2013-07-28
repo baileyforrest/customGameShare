@@ -16,6 +16,11 @@ function Game(params) {
   this.teams = params.teams;
 }
 
+Game.prototype.getPlayers = function () {
+  'use strict';
+  return this.players;
+};
+
 Game.prototype.isAlly = function (p1, p2) {
   'use strict';
   var team;

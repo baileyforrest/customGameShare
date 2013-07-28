@@ -24,17 +24,17 @@ var teams = {};
 // Create socket event handlers (TODO: move this somewhere else)
 socket.on('connect', function () {
   'use strict';
-  socket.emit('join game');
+  socket.emit('game join');
 });
 
-socket.on('join game', function (data) {
+socket.on('game join', function (data) {
   'use strict';
   player = new Player(data.id);
   players[data.idx] = player;
   teams[data.id] = [player];
 });
 
-socket.on('new player', function (data) {
+socket.on('player new', function (data) {
   'use strict';
   var newPlayer;
   newPlayer = new Player(data.id);
@@ -60,7 +60,7 @@ function init() {
   map = new Map(player, new Game(
     { players: players
     , teams: teams
-  }), socket);
+  }), socket, new TestMap());
   // TODO: map should work with socket abstraction, not direct socket
 
   // Create UI handler

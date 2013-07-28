@@ -12,7 +12,7 @@ function Cube(params) {
   this.healthMax = 100;
   this.healthCur = 100;
   this.height = this.radius * 2;
-  Unit.prototype.init.call(this);
+  this.init();
 
   this.attackSpeed = 1000;
   this.attackRange = 400;
@@ -34,13 +34,4 @@ Cube.prototype.createView = function () {
   view.overdraw = true;
 
   return view;
-};
-
-Cube.prototype.updateView = function () {
-  'use strict';
-  Unit.prototype.updateView.call(this);
-  this.view.position.x = this.pos.x;
-  this.view.position.y = this.pos.y;
-  this.view.position.z = this.pos.z + this.height / 2;
-  this.view.rotation.z = this.rot;
 };

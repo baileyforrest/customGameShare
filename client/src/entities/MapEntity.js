@@ -65,6 +65,7 @@ MapEntity.prototype.getQTree = function () {
 MapEntity.prototype.init = function () {
   'use strict';
   this.view = this.createView();
+  this.view.position.z = this.height / 2;
   this.selection = this.createSelect();
   this.map.add(this);
 };
