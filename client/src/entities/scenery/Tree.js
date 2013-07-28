@@ -10,8 +10,8 @@ function Tree(params) {
   this.lumber = params.lumber ? params.lumber : 5000;
   this.healthMax = 10;
   this.healthCur = 10;
-  this.radius = 20;
-  this.height = 80;
+  this.radius = 50;
+  this.height = 200;
   this.init();
 }
 
@@ -29,7 +29,8 @@ Tree.prototype.createView = function () {
     new THREE.MeshNormalMaterial()
   );
 
-  view.position.set(this.pos);
+  view.position.copy(this.pos);
   view.overdraw = true;
+  view.rotation.x = Math.PI / 2;
   return view;
 };

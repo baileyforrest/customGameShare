@@ -11,7 +11,7 @@ function UIHandler(canvas3d, canvas2d, map) {
   this.context2d = this.canvas2d.getContext('2d');
   this.camera = this.createCamera();
 
-  this.mousePos = new THREE.Vector2(0, 0);
+  this.mousePos = new THREE.Vector2(CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2);
   this.mouseDownPos = new THREE.Vector2(0, 0);
   this.mouseDown = false;
   this.selRect = new Rect();
@@ -19,6 +19,9 @@ function UIHandler(canvas3d, canvas2d, map) {
 
   this.registerMouseMove();
   this.registerMouseClick();
+
+  this.CAMERA_SCROLL_SPEED = 500; // pix / sec
+  this.CAMERA_SCROLL_THRESH = 30;
 }
 
 UIHandler.prototype.getCamera = function () {
@@ -202,4 +205,32 @@ UIHandler.prototype.renderOverlay = function () {
   if (this.doDrawStatBars) {
     this.drawStatBars();
   }
+};
+
+UIHandler.prototype.scrollCamera = function (timeDiff) {
+  'use strict';
+  //console.log(timeDiff);
+  var scrollDist = (timeDiff / 1000) * this.CAMERA_SCROLL_SPEED;
+
+  if (this.mousePos.x < this.CAMERA_SCROLL_THRESH) {
+    this.camera.position.x -= scrollDist;
+    console.log(this.mousePos);
+  } else if (this.mousePos.x > CANVAS_WIDTH - this.CAMERA_SCROLL_THRESH) {
+    this.camera.position.x += scrollDist;
+    console.log(this.mousePos);
+  }
+
+  if (this.mousePos.y < this.CAMERA_SCROLL_THRESH) {
+    this.camera.position.y += scrollDist;
+    console.log(this.mousePos);
+  } else if (this.mousePos.y > CANVAS_HEIGHT - this.CAMERA_SCROLL_THRESH) {
+    this.camera.position.y -= scrollDist;
+    console.log(this.mousePos);
+  }
+};
+
+UIHandler.prototype.update = function (timeDiff) {
+  'use strict';
+  this.scrollCamera(timeDiff);
+  this.renderOverlay();
 };

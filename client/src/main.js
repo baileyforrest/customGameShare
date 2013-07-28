@@ -73,7 +73,7 @@ function init() {
 }
 
 
-var lastTime = 0;
+var lastTime = new Date();
 function animate() {
   'use strict';
   // update
@@ -86,7 +86,7 @@ function animate() {
 
   // render
   renderer3d.render(map.getScene(), uiHandler.getCamera());
-  uiHandler.renderOverlay();
+  uiHandler.update(timeDiff);
 
   // request new frame
   requestAnimationFrame(function () {

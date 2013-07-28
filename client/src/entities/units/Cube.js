@@ -29,7 +29,7 @@ Cube.prototype.createView = function () {
   ),
     new THREE.MeshNormalMaterial()
   );
-  view.position.set(this.pos);
+  view.position.copy(this.pos);
 
   view.overdraw = true;
 
