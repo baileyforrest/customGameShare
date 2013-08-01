@@ -28,6 +28,9 @@ function UIHandler(canvas3d, canvas2d, map) {
 
 /**
  * Configure pointer locking
+ *
+ * TODO: on entering and leaving capture, change mouse modes, also set a flag
+ * if capturing is not available
  */
 UIHandler.prototype.lockMouse = function () {
   'use strict';
@@ -42,30 +45,6 @@ UIHandler.prototype.lockMouse = function () {
     'webkitPointerLockElement' in document;
 
   if (hasPointerLock) {
-    /*
-    pointerLockChange = function (event) {
-      if (document.pointerLockElement === body ||
-          document.mozPointerLockElement === body ||
-            document.webkitPointerLockElement === body) {
-
-        container.style.display = 'none';
-      } else {
-        container.style.display = '-webkit-box';
-        container.style.display = '-moz-box';
-        container.style.display = 'box';
-      }
-    };
-    */
-    // Hook pointer lock state change events
-    /*
-    document.addEventListener('pointerlockchange', pointerLockChange, false);
-    document.addEventListener('mozpointerlockchange', pointerLockChange, false);
-    document.addEventListener('webkitpointerlockchange', pointerLockChange, false);
-
-       document.addEventListener( 'pointerlockerror', pointerlockerror, false );
-       document.addEventListener( 'mozpointerlockerror', pointerlockerror, false );
-       document.addEventListener( 'webkitpointerlockerror', pointerlockerror, false );
-       */
     container.addEventListener('click', function (event) {
       // Ask the browser to lock the pointer
       body.requestPointerLock = body.requestPointerLock || body.mozRequestPointerLock || body.webkitRequestPointerLock;

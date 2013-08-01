@@ -11,7 +11,7 @@ function Map(player, game, socket, mapFile) {
   bounds.setDim(CANVAS_WIDTH, CANVAS_HEIGHT);
 
   // Quad tree containing all MapEntities
-  this.qTree = new QuadTree(bounds);
+  this.qTree = new QuadTree(mapFile.getBounds());
 
   this.player = player;
   this.game = game;

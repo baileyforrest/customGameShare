@@ -6,21 +6,18 @@
 
 function Tree(params) {
   'use strict';
-  MapEntity.call(this, params);
-  this.lumber = params.lumber ? params.lumber : 5000;
+  Resource.call(this, params);
+  this.resource = params.lumber ? params.lumber : 5000;
+
   this.healthMax = 10;
   this.healthCur = 10;
   this.radius = 50;
   this.height = 200;
+
   this.init();
 }
 
-Tree.prototype = Object.create(MapEntity.prototype);
-
-Tree.prototype.modLumber = function (mod) {
-  'use strict';
-  this.lumber += mod;
-};
+Tree.prototype = Object.create(Resource.prototype);
 
 Tree.prototype.createView = function () {
   'use strict';

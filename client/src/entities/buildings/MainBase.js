@@ -19,6 +19,12 @@ MainBase.prototype = Object.create(MapEntity.prototype);
 
 MainBase.prototype.createView = function () {
   'use strict';
+  var view = new THREE.Mesh(
+    new THREE.SphereGeometry(this.radius), new THREE.MeshNormalMaterial()
+  );
 
+  view.position.copy(this.pos);
+  view.overdraw = true;
 
+  return view;
 };

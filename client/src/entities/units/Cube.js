@@ -12,11 +12,12 @@ function Cube(params) {
   this.healthMax = 100;
   this.healthCur = 100;
   this.height = this.radius * 2;
-  this.init();
 
   this.attackSpeed = 1000;
   this.attackRange = 400;
   this.damage = 10;
+
+  this.init();
 }
 
 Cube.prototype = Object.create(Unit.prototype);
@@ -30,7 +31,6 @@ Cube.prototype.createView = function () {
     new THREE.MeshNormalMaterial()
   );
   view.position.copy(this.pos);
-
   view.overdraw = true;
 
   return view;

@@ -169,7 +169,7 @@ Unit.prototype.doCommand = function () {
       break;
     }
     case Command.comType.UNIQUE: {
-      this.uniqueCommand(this.command.getParams());
+      this.uniqueCommand(this.command.uniqueType, this.command.getParams());
       break;
     }
   }
@@ -217,7 +217,12 @@ Unit.prototype.patrol = function (pos) {
   return;
 };
 
-Unit.prototype.uniqueCommand = function (params) {
+Unit.prototype.uniqueCommand = function (type, params) {
+  'use strict';
+  this.doUnique(type, params);
+};
+
+Unit.prototype.doUnique = function (type, params) {
   'use strict';
   return;
 };
