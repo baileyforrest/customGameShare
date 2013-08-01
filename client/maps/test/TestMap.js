@@ -10,7 +10,7 @@ TestMap.prototype = Object.create(MapFile.prototype);
 
 TestMap.prototype.init = function (map) {
   'use strict';
-  var floor, cube, i, pid, players;
+  var floor, cube, i, pid, players, tree;
   players = map.getPlayers();
   // Floor (temporary)
   floor = new THREE.Mesh(
@@ -31,6 +31,15 @@ TestMap.prototype.init = function (map) {
     , rot: 0
     , map: map
     , playerId: pid
+    });
+  }
+
+  for (i = 0; i < 5; i += 1) {
+    tree = new Tree({
+      pos: new THREE.Vector3(-300 + i * 150, Y_OFFSET + 200, 0)
+    , rot: 0
+    , map: map
+    , playerId: 0
     });
   }
 };

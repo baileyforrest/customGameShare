@@ -1,5 +1,8 @@
 /**
  * gameServer.js - main game server
+ *
+ * Right now this server is very contrived. Once two clients connect, it will
+ * tell the two clients to start the game
  */
 
 var io = require('socket.io')
@@ -31,7 +34,7 @@ function onSocketConnection(client) {
   'use strict';
   client.on('disconnect', onClientDisconnect);
   client.on('game command', onClientCommand);
-  client.on('join game', onClientJoinGame);
+  client.on('game join', onClientJoinGame);
 }
 
 function onClientCommand(command) {
@@ -43,15 +46,15 @@ function onClientJoinGame(client) {
   'use strict';
   var i;
   playerIds.push(this.id);
-  this.broadcast.emit('new player', { id: this.id, idx: playerIds.indexOf(this.id)});
-  this.emit('join game', { id: this.id, idx: playerIds.indexOf(this.id) });
+  this.broadcast.emit('player new', { id: this.id, idx: playerIds.indexOf(this.id)});
+  this.emit('game join', { id: this.id, idx: playerIds.indexOf(this.id) });
 
   // Tell the new player of all the other ones
   for (i = 0; i < playerIds.length; i += 1) {
     if (playerIds[i] === this.id) {
       continue;
     }
-    this.emit('new player', { id: playerIds[i], idx: i });
+    this.emit('player new', { id: playerIds[i], idx: i });
   }
 
   if (playerIds.length >= numPlayers) {
@@ -62,7 +65,13 @@ function onClientJoinGame(client) {
 
 function onClientDisconnect() {
   'use strict';
-  console.log(this.id);
+  var idx;
+  idx = playerIds.indexOf(this.id);
+  if (idx < 0) {
+    return;
+  }
+  this.broadcast.emit('player exit', { id: this.id, idx: idx });
+  playerIds.splice(idx, 1);
 }
 
 init();

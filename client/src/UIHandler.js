@@ -4,6 +4,9 @@
 
 function UIHandler(canvas3d, canvas2d, map) {
   'use strict';
+  this.CAMERA_SCROLL_SPEED = 500; // pix / sec
+  this.CAMERA_SCROLL_THRESH = 30;
+
   this.canvas3d = canvas3d;
   this.canvas2d = canvas2d;
   this.map = map;
@@ -17,12 +20,80 @@ function UIHandler(canvas3d, canvas2d, map) {
   this.selRect = new Rect();
   this.doDrawStatBars = true;
 
+  this.lockMouse();
+
   this.registerMouseMove();
   this.registerMouseClick();
-
-  this.CAMERA_SCROLL_SPEED = 500; // pix / sec
-  this.CAMERA_SCROLL_THRESH = 30;
 }
+
+/**
+ * Configure pointer locking
+ */
+UIHandler.prototype.lockMouse = function () {
+  'use strict';
+  var hasPointerLock
+    , body = document.body
+    , pointerLockChange
+    , container = document.getElementById('container')
+  ;
+
+  hasPointerLock = 'pointerLockElement' in document ||
+    'mozPointerLockElement' in document ||
+    'webkitPointerLockElement' in document;
+
+  if (hasPointerLock) {
+    /*
+    pointerLockChange = function (event) {
+      if (document.pointerLockElement === body ||
+          document.mozPointerLockElement === body ||
+            document.webkitPointerLockElement === body) {
+
+        container.style.display = 'none';
+      } else {
+        container.style.display = '-webkit-box';
+        container.style.display = '-moz-box';
+        container.style.display = 'box';
+      }
+    };
+    */
+    // Hook pointer lock state change events
+    /*
+    document.addEventListener('pointerlockchange', pointerLockChange, false);
+    document.addEventListener('mozpointerlockchange', pointerLockChange, false);
+    document.addEventListener('webkitpointerlockchange', pointerLockChange, false);
+
+       document.addEventListener( 'pointerlockerror', pointerlockerror, false );
+       document.addEventListener( 'mozpointerlockerror', pointerlockerror, false );
+       document.addEventListener( 'webkitpointerlockerror', pointerlockerror, false );
+       */
+    container.addEventListener('click', function (event) {
+      // Ask the browser to lock the pointer
+      body.requestPointerLock = body.requestPointerLock || body.mozRequestPointerLock || body.webkitRequestPointerLock;
+      if (/Firefox/i.test(navigator.userAgent)) {
+        var fullscreenchange = function (event) {
+          if (document.fullscreenElement === body || document.mozFullscreenElement === body || document.mozFullScreenElement === body) {
+            document.removeEventListener('fullscreenchange', fullscreenchange);
+            document.removeEventListener('mozfullscreenchange', fullscreenchange);
+
+            body.requestPointerLock();
+          }
+
+        };
+
+        document.addEventListener('fullscreenchange', fullscreenchange, false);
+        document.addEventListener('mozfullscreenchange', fullscreenchange, false);
+
+        body.requestFullscreen = body.requestFullscreen || body.mozRequestFullscreen || body.mozRequestFullScreen || body.webkitRequestFullscreen;
+
+        body.requestFullscreen();
+
+      } else {
+        body.requestPointerLock();
+      }
+
+    }, false);
+  }
+};
 
 UIHandler.prototype.getCamera = function () {
   'use strict';
@@ -60,28 +131,61 @@ UIHandler.prototype.canvas2map = function (x, y) {
 
 UIHandler.prototype.registerMouseMove = function () {
   'use strict';
-  var self = this;
+  var self, mouseLockEnable
+  ;
 
+  self = this;
+  mouseLockEnable = true; // todo: set this to false when mouse lock not on
+  if (mouseLockEnable) {
+    document.addEventListener('mousemove', function (event) {
+      var movementX, movementY, newX, newY;
+      movementX = event.movementX || event.mozMovementX ||
+        event.webkitMovementX || 0;
 
-  this.canvas2d.addEventListener('mousemove', function (event) {
-    if (self.mouseDown) {
-      self.selRect.setVect(self.mouseDownPos, self.mousePos);
-    }
+      movementY = event.movementY || event.mozMovementY ||
+        event.webkitMovementY || 0;
 
-    self.mousePos.set(event.clientX, event.clientY);
-  });
+      newX = self.mousePos.x + movementX;
+      newX = (newX < 0) ? 0 : newX;
+      newX = (newX >= CANVAS_WIDTH) ? CANVAS_WIDTH - 1 : newX;
+      newY = self.mousePos.y + movementY;
+      newY = (newY < 0) ? 0 : newY;
+      newY = (newY >= CANVAS_HEIGHT) ? CANVAS_HEIGHT - 1 : newY;
+      self.mousePos.setX(newX);
+      self.mousePos.setY(newY);
+
+      if (self.mouseDown) {
+        self.selRect.setVect(self.mouseDownPos, self.mousePos);
+      }
+    }, false);
+  } else {
+    this.canvas2d.addEventListener('mousemove', function (event) {
+      if (self.mouseDown) {
+        self.selRect.setVect(self.mouseDownPos, self.mousePos);
+      }
+
+      self.mousePos.set(event.clientX, event.clientY);
+    });
+  }
 };
 
 UIHandler.prototype.registerMouseClick = function () {
   'use strict';
-  var self, left, right, ie;
+  var self, left, right, ie, hasMouseCapture, target;
   self = this;
+
+  hasMouseCapture = true; // TODO: check for mouse capture
+  if (hasMouseCapture) {
+    target = document;
+  } else {
+    target = this.canvas2d;
+  }
 
   ie = false; // TODO: check for IE, or who gives a shit
   left = ie ? 1 : 0;
   right = 2;
 
-  this.canvas2d.onmousedown = function (event) {
+  target.addEventListener('mousedown', function (event) {
     var mapPos;
     if (event.button === left) {
       self.mouseDown = true;
@@ -91,9 +195,9 @@ UIHandler.prototype.registerMouseClick = function () {
       mapPos = self.canvas2map(self.mousePos.x, self.mousePos.y);
       self.map.notifyRightClick(new THREE.Vector2(mapPos.x, mapPos.y));
     }
-  };
+  }, false);
 
-  this.canvas2d.onmouseup = function (event) {
+  target.addEventListener('mouseup', function (event) {
     var down, up, mapDown, mapUp;
     if (event.button === left) {
       self.mouseDown = false;
@@ -103,7 +207,7 @@ UIHandler.prototype.registerMouseClick = function () {
 
       self.map.select(new Rect(up, down));
     }
-  };
+  }, false);
 
   // Disable context menu
   this.canvas2d.oncontextmenu = function () {
@@ -193,6 +297,14 @@ UIHandler.prototype.drawSelectionRect = function () {
   this.context2d.stroke();
 };
 
+UIHandler.prototype.drawCursor = function () {
+  'use strict';
+  this.context2d.beginPath();
+  this.context2d.rect(this.mousePos.x, this.mousePos.y, 10, 10);
+  this.context2d.fillStyle = '#0000ff';
+  this.context2d.fill();
+};
+
 UIHandler.prototype.renderOverlay = function () {
   'use strict';
   // Clear the overlay
@@ -205,6 +317,8 @@ UIHandler.prototype.renderOverlay = function () {
   if (this.doDrawStatBars) {
     this.drawStatBars();
   }
+
+  this.drawCursor();
 };
 
 UIHandler.prototype.scrollCamera = function (timeDiff) {
@@ -214,18 +328,14 @@ UIHandler.prototype.scrollCamera = function (timeDiff) {
 
   if (this.mousePos.x < this.CAMERA_SCROLL_THRESH) {
     this.camera.position.x -= scrollDist;
-    console.log(this.mousePos);
   } else if (this.mousePos.x > CANVAS_WIDTH - this.CAMERA_SCROLL_THRESH) {
     this.camera.position.x += scrollDist;
-    console.log(this.mousePos);
   }
 
   if (this.mousePos.y < this.CAMERA_SCROLL_THRESH) {
     this.camera.position.y += scrollDist;
-    console.log(this.mousePos);
   } else if (this.mousePos.y > CANVAS_HEIGHT - this.CAMERA_SCROLL_THRESH) {
     this.camera.position.y -= scrollDist;
-    console.log(this.mousePos);
   }
 };
 

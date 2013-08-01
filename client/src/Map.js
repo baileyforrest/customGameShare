@@ -53,8 +53,6 @@ Map.prototype.add = function (entity) {
 
   this.qTree.insert(entity);
 
-  console.log('adding...');
-  console.log(entity.getView());
   // Add the entity's view to the scene
   this.scene.add(entity.getView());
 };
